@@ -12,7 +12,7 @@ Help for {hi:outwrite}
 {title:Syntax}
 
 {p 2 4 4}{cmd: outwrite} {it:estimates_1} {it:estimates_2} [...]{break}
-{help using} {it:/path/to/output}.[xlsx|xls|csv|tex] , {break}
+{help using} "{it:/path/to/output}.[xlsx|xls|csv|tex]" , {break}
 [{opt r:eplace} {opt s:tats()} {opth d:rop(varlist)}] {break}
 [{opt t:stat}|{opt p:value}] [{opth f:ormat(format)}] {break}
 [{bf:sheet}({it:sheetname} [,replace]) {opt m:odify}] {break}
