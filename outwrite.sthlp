@@ -1,5 +1,5 @@
 {smcl}
-{* Nov 21st 2018}
+{* Dec 31st 2018}
 {hline}
 Help for {hi:outwrite}
 {hline}
@@ -54,6 +54,15 @@ Help for {hi:outwrite}
 Benjamin Daniels
 bbdaniels@gmail.com
 
+{title:Contributing}
+
+{p}{bf: outwrite} is open for development on {browse "https://bbdaniels.github.io/stata-code/outwrite/":GitHub}.
+Submit bugs and feature requests {browse "https://github.com/bbdaniels/outwrite/issues":here}.
+If you like {bf:outwrite}, be sure to visit my {browse "http://bbdaniels.github.io":homepage}
+and {browse "https://gist.github.com/bbdaniels/a3c9f9416f1d16d6f3c6e8cf371f1d89":Stata boilerplate code}.{p_end}
+
 {title:Acknowledgments}
 
-{p}While the concept of {cmd:outwrite} is original, we borrowed core functionality from {helpb xml_tab} by Zurab Sajaia and Michael Lokshin, and many ideas from such programs as {helpb estout} by Ben Jann, {helpb outreg} by John Luke Gallup, {helpb outreg2} by Roy Wada, {helpb modltbl} by John H. Tyler, {helpb mktab} by Nicholas Winter, {helpb outtex} by Antoine Terracol, and {helpb est2tex} by Marc Muendler.{p_end}
+{p}While the concept of {cmd:outwrite} is original, we borrowed core functionality from {helpb xml_tab} by Zurab Sajaia and Michael Lokshin,
+and many ideas from such programs as {helpb estout} by Ben Jann, {helpb outreg} by John Luke Gallup, {helpb outreg2} by Roy Wada,
+{helpb modltbl} by John H. Tyler, {helpb mktab} by Nicholas Winter, {helpb outtex} by Antoine Terracol, and {helpb est2tex} by Marc Muendler.{p_end}

@@ -1,4 +1,6 @@
-*! version 1.0 09212018 – Benjamin Daniels – bbdaniels@gmail.com
+//! version 1.0 31DEC2018  DIME Analytics bbdaniels@gmail.com
+
+// outwrite - Stata module to consolidate multiple regressions and export the results to a .xlsx, .xls, .csv, or .tex file.
 
 cap prog drop outwrite
 prog def outwrite
