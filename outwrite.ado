@@ -137,6 +137,7 @@ else {
 // Write
 
 	local ext = substr("`using'",strpos("`using'",".")+1,.)
+	local ext2 = substr("`using'",strpos("`using'",".")+1,.)
 	if `OLD' == 1 | !regexm("`ext'","xls") local ext "csv"
 		else {
 			local ext "xlsx"
@@ -147,7 +148,7 @@ else {
 		format(`format') ///
 		rownames(`rownames') ///
 		colnames(`colnames') ///
-		`replace' `sheet' `modify' `c' ext(`ext')
+		`replace' `sheet' `modify' `c' ext(`ext2')
 
 // end main program
 }
@@ -175,7 +176,7 @@ qui {
 		if _rc != 0 local STARS_FLAG = 0
 
 	// Set up putexcel
-	qui putexcel set `using' , `replace' `sheet' `modify'
+	qui putexcel set "`using'" , `replace' `sheet' `modify'
 	putexcel A1 , border(bottom thick)
 
 		local nCols = colsof(`anything') + 1
