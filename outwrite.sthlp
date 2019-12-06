@@ -1,5 +1,5 @@
 {smcl}
-{* Dec 31st 2018}
+{* Dec 31st 2019}
 {hline}
 Help for {hi:outwrite}
 {hline}
@@ -56,10 +56,9 @@ bbdaniels@gmail.com
 
 {title:Contributing}
 
-{p}{bf: outwrite} is open for development on {browse "https://bbdaniels.github.io/stata-code/outwrite/":GitHub}.
+{p}{bf: outwrite} is open for development on {browse "https://github.com/bbdaniels/outwrite/":GitHub}.
 Submit bugs and feature requests {browse "https://github.com/bbdaniels/outwrite/issues":here}.
-If you like {bf:outwrite}, be sure to visit my {browse "http://bbdaniels.github.io":homepage}
-and {browse "https://gist.github.com/bbdaniels/a3c9f9416f1d16d6f3c6e8cf371f1d89":Stata boilerplate code}.{p_end}
+If you like {bf:outwrite}, be sure to visit my {browse "http://www.benjaminbdaniels":homepage}.{p_end}
 
 {title:Acknowledgments}
 
