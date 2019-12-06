@@ -1,4 +1,4 @@
-//! version 1.1 22 May 2019  Benjamin Daniels bbdaniels@gmail.com
+//! version 1.1 31DEC2019  Benjamin Daniels bbdaniels@gmail.com
 
 // outwrite - Stata module to consolidate multiple regressions and export the results to a .xlsx, .xls, .csv, or .tex file.
 
