@@ -154,7 +154,7 @@ else {
 
 // end main program
 }
-di as err "Wrote table to `using'!"
+di "Wrote table to `using'!"
 end
 
 // Write matrix and matrix_STARS to xlsx ****************************************
