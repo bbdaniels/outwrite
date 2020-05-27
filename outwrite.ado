@@ -146,6 +146,8 @@ else {
 			local format = substr("`format'",strpos("`format'",".")+1,1)
 		}
 
+  if "`ext'" == "csv" local c c
+
 	mat2`ext' `anything' using "`using'" , ///
 		format(`format') ///
 		rownames(`rownames') ///
