@@ -1,7 +1,6 @@
 //! version 1.1 31DEC2019  Benjamin Daniels bbdaniels@gmail.com
 
 // outwrite - Stata module to consolidate multiple regressions and export the results to a .xlsx, .xls, .csv, or .tex file.
-
 cap prog drop outwrite
 prog def outwrite
 
@@ -244,6 +243,7 @@ syntax ///
   [replace] [c] [ext(string asis)] ///
   [nobold] /// Disable bolding
   [stats(string asis)] /// Get stats
+  [STATFORMat(string asis)] /// Get stats formats
 
 	// Load matrix into Stata
 	preserve
@@ -253,8 +253,18 @@ syntax ///
 
 	// Remove blanks
 	qui foreach var of varlist * {
-    	replace `var' = "" if strpos(`var',".") == 1
+    replace `var' = "" if strpos(`var',".") == 1
 	}
+  
+  // Adjust stat formats
+  local nStat : word count `stats'
+    forv i = `nStat'(-1)1 {
+      local sformat : word `=`nStat'-`i'+1' of `statformat'
+      if "`sformat'" == "" local sformat "`format'"
+      foreach var of varlist * {
+        replace `var' = string(real(`var'),"`sformat'") in `=c(N)-`i'+1'
+      }
+    }
   
   // Remove blank rows
   egen TEMP = concat(*)
