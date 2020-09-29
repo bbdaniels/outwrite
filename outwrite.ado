@@ -245,9 +245,12 @@ syntax ///
   [replace] [c] [ext(string asis)] ///
   [nobold] /// Disable bolding
   [nonumbering] /// Disable numbering
+  [noparen] /// Disable SE parentheses
+  [nostars] /// Disable SE parentheses
   [stats(string asis)] /// Get stats
   [STATFORMat(string asis)] /// Get stats formats
-
+  [*]
+  
 	// Load matrix into Stata
 	preserve
 		clear
@@ -361,7 +364,29 @@ syntax ///
   		  replace `var' = "\multicolumn{1}{p{0.13\linewidth}}{\centering{(`col')}}" in 1
   		}
     }
-
+    
+    // SE parentheses
+    if "`paren'" != "noparen" {
+      foreach var of varlist `anything'* {
+        replace `var' = "(" + subinstr(`var',"\phantom{***}",")\phantom{***}",.) if a == "" in 3/l
+        replace `var' = subinstr(`var',"*","\phantom{)}*",1) if a != "" in 3/l
+      }
+    }
+    
+    // Catch minus signs
+    foreach var of varlist `anything'* {
+      replace `var' = subinstr(`var',"-","$-$",.)
+    }
+    
+    // Stars gone
+    if "`stars'" != "nostars" {
+      foreach var of varlist `anything'* {
+        replace `var' = subinstr(`var',"*","",.)
+        replace `var' = subinstr(`var',"\phantom{}","",.)
+      }
+    }
+    
+    // Prepare tex output
 		egen FINAL = concat(a `vars') , punct(" & ")
   		keep FINAL
   		replace FINAL = FINAL + " \\"
@@ -375,28 +400,27 @@ syntax ///
       | (strpos(FINAL,"`firstStat'} &") > 0) , gen(false)
 
 		qui count
-			local total = `r(N)'
-			set obs `=`total'+1'
+			set obs `=`c(N)'+1'
 			   replace sort = 0 if sort == .
 			   replace sort = .50 in 1
 			   replace sort = .75 in 2
-			set obs `=`total'+2'
+			set obs `=`c(N)'+1'
 			   replace sort = 1 if sort == .
-      set obs `=`total'+3'
+      set obs `=`c(N)'+1'
 			   replace sort = 0.25 if sort == .
 			gsort + sort - false
-			set obs `=`total'+5'
-      
+			
    		replace FINAL = "\hline" if false == 1
         drop false
 
 		replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lrrrrrrrrrrrrrrr}" in 1
 		replace FINAL = "\toprule" in 2
-		replace FINAL = "\hline" in 5
-		replace FINAL = "\hline" in `=`total'+4'
-		replace FINAL = "\end{tabular}" in `=`total'+5'
+		replace FINAL = "\hline" in 5    
+    
+    set obs `=`c(N)'+2'
+		replace FINAL = "\hline" in `=`c(N)'-1'
+		replace FINAL = "\end{tabular}" in `c(N)'
 		drop sort
-
 	}
    
 	// Write
