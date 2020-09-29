@@ -159,7 +159,7 @@ else {
 
 // end main program
 }
-di "Wrote table to `using'!"
+di "Wrote table to {browse `using'}!"
 end
 
 // Write matrix and matrix_STARS to xlsx ****************************************
@@ -420,13 +420,15 @@ syntax ///
 		replace FINAL = "\toprule" in 2
 		replace FINAL = "\hline" in 5    
     
-    parenParse `addlines'
-    forvalues i = 1/`r(nStrings)' {
-      set obs `=`c(N)'+1'
-		  replace FINAL = `"`r(string`i')'"' in `c(N)'
-      replace FINAL = trim(itrim(FINAL)) in `c(N)'
-      replace FINAL = subinstr(FINAL,`"" ""',`"}} & \multicolumn{1}{p{0.13\linewidth}}{\centering{"',.) in `c(N)'
-      replace FINAL = "{" + subinstr(FINAL,`"""',`""',.) + "}} \\" in `c(N)'
+    if `"`addlines'"' != "" {
+      parenParse `addlines'
+      forvalues i = 1/`r(nStrings)' {
+        set obs `=`c(N)'+1'
+  		  replace FINAL = `"`r(string`i')'"' in `c(N)'
+        replace FINAL = trim(itrim(FINAL)) in `c(N)'
+        replace FINAL = subinstr(FINAL,`"" ""',`"}} & \multicolumn{1}{p{0.13\linewidth}}{\centering{"',.) in `c(N)'
+        replace FINAL = "{" + subinstr(FINAL,`"""',`""',.) + "}} \\" in `c(N)'
+      }
     }
     
     set obs `=`c(N)'+2'
