@@ -384,6 +384,7 @@ syntax ///
       foreach var of varlist `anything'* {
         replace `var' = subinstr(`var',"*","",.)
         replace `var' = subinstr(`var',"\phantom{}","",.)
+        replace `var' = subinstr(`var',"\phantom{)}","",.)
       }
     }
     
