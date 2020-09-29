@@ -244,6 +244,7 @@ syntax ///
   [format(string asis)] /// number of decimal places
   [replace] [c] [ext(string asis)] ///
   [nobold] /// Disable bolding
+  [nonumbering] /// Disable numbering
   [stats(string asis)] /// Get stats
   [STATFORMat(string asis)] /// Get stats formats
 
@@ -344,6 +345,22 @@ syntax ///
 		}
         
     drop if TODROP == 1
+    
+    // column numbering
+    if "`numbering'" != "nonumbering" {
+  		set obs `=`c(N)' + 1'
+  		tempvar sort
+  		  gen `sort' = _n
+  		  replace `sort' = 0 if (_n == _N)
+  		  gsort + `sort'
+  		  drop `sort'
+
+  		local col = 0
+  		foreach var of varlist `anything'* {
+  		  local ++ col
+  		  replace `var' = "\multicolumn{1}{p{0.13\linewidth}}{\centering{(`col')}}" in 1
+  		}
+    }
 
 		egen FINAL = concat(a `vars') , punct(" & ")
   		keep FINAL
@@ -361,7 +378,8 @@ syntax ///
 			local total = `r(N)'
 			set obs `=`total'+1'
 			   replace sort = 0 if sort == .
-			   replace sort = .5 in 1
+			   replace sort = .50 in 1
+			   replace sort = .75 in 2
 			set obs `=`total'+2'
 			   replace sort = 1 if sort == .
       set obs `=`total'+3'
@@ -374,7 +392,7 @@ syntax ///
 
 		replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lrrrrrrrrrrrrrrr}" in 1
 		replace FINAL = "\toprule" in 2
-		replace FINAL = "\hline" in 4
+		replace FINAL = "\hline" in 5
 		replace FINAL = "\hline" in `=`total'+4'
 		replace FINAL = "\end{tabular}" in `=`total'+5'
 		drop sort
