@@ -19,7 +19,8 @@ syntax anything using/ ///
 	[COLnames(string asis)] ///
 	[Stats(passthru)] [Tstat] [Pvalue]  ///
 	[Replace] [Modify] [sheet(passthru)] ///
-	[Drop(string asis)]
+	[Drop(string asis)] ///
+  [*] /// enable other options in TeX
 
 qui {
 
@@ -29,7 +30,8 @@ if "`format'" == "" local format = "%9.2f"
 // Regressions setup
 if `: word count `anything'' >= 2 {
 
-	cap mat drop results results_STARS
+	cap mat drop results 
+  cap mat drop results_STARS
 	regprep `anything' , below `stats' `tstat' `pvalue'
 
 	mat results = r(results)
@@ -152,7 +154,7 @@ else {
 		format(`format') ///
 		rownames(`rownames') ///
 		colnames(`colnames') ///
-		`replace' `sheet' `modify' `c' ext(`ext2')
+		`replace' `sheet' `modify' `c' ext(`ext2') `options' `stats'
 
 // end main program
 }
@@ -239,7 +241,9 @@ syntax ///
   [colnames(string asis)] /// column titles
   [rownames(string asis)] /// row titles
   [format(string asis)] /// number of decimal places
-  [replace] [c] [ext(string asis)]
+  [replace] [c] [ext(string asis)] ///
+  [nobold] /// Disable bolding
+  [stats(string asis)] /// Get stats
 
 	// Load matrix into Stata
 	preserve
@@ -251,6 +255,11 @@ syntax ///
 	qui foreach var of varlist * {
     	replace `var' = "" if strpos(`var',".") == 1
 	}
+  
+  // Remove blank rows
+  egen TEMP = concat(*)
+    gen TODROP = TEMP == ""
+    drop TEMP
 
 	// Stars into text
 	cap confirm matrix `anything'_STARS
@@ -259,8 +268,11 @@ syntax ///
 			qui count
 			local nrows = `r(N)'
 			local j = 0
+      
+      unab vars : *
+      local vars = subinstr("`vars'","TODROP"," ",.)
 
-			foreach var of varlist * {
+			foreach var of varlist `vars' {
 				local ++j
 				local r = 0
 				if "`ext'" == "tex" forvalues i = 1/`r(N)' {
@@ -295,7 +307,7 @@ syntax ///
 		foreach var of varlist * {
 		  local ++ col
 		  local theName : word `col' of `colnames'
-		  replace `var' = "`theName'" in 1
+		  if "`var'" != "TODROP" replace `var' = "`theName'" in 1
 		}
 	}
 
@@ -313,34 +325,49 @@ syntax ///
 
 	// Update for tex
 	if "`ext'" == "tex" {
-		replace a = "{\bf " + a + "}"
-		foreach var of varlist `anything'* {
+		if "`bold'" != "nobold" replace a = "{\bf " + a + "}"
+		if "`bold'" != "nobold" foreach var of varlist `anything'* {
 			replace `var' = "\multicolumn{1}{c}" + "{\bf " + `var' + "}" in 1
 		}
+    
+    drop if TODROP == 1
 
-		egen FINAL = concat(*) , punct(" & ")
-
-		keep FINAL
-		replace FINAL = FINAL + " \\"
-
+		egen FINAL = concat(a `vars') , punct(" & ")
+  		keep FINAL
+  		replace FINAL = FINAL + " \\"
+    
 		gen sort = _n
+    
+    // Find first statistic
+    local firstStat : word 1 of `stats'
+      expand 2 if ///
+        (strpos(FINAL,"`firstStat' &") == 1) ///
+      | (strpos(FINAL,"`firstStat'} &") > 0) , gen(false)
+
 		qui count
 			local total = `r(N)'
 			set obs `=`total'+1'
-			replace sort = 0 if sort == .
-			replace sort = .5 in 1
+			   replace sort = 0 if sort == .
+			   replace sort = .5 in 1
 			set obs `=`total'+2'
-			replace sort = 1 if sort == .
-			gsort + sort
-			set obs `=`total'+4'
+			   replace sort = 1 if sort == .
+      set obs `=`total'+3'
+			   replace sort = 0.25 if sort == .
+			gsort + sort - false
+			set obs `=`total'+5'
+      
+   		replace FINAL = "\hline" if false == 1
+        drop false
 
 		replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lrrrrrrrrrrrrrrr}" in 1
-		replace FINAL = "\hline" in 3
-		replace FINAL = "\hline" in `=`total'+3'
-		replace FINAL = "\end{tabular}" in `=`total'+4'
+		replace FINAL = "\toprule" in 2
+		replace FINAL = "\hline" in 4
+		replace FINAL = "\hline" in `=`total'+4'
+		replace FINAL = "\end{tabular}" in `=`total'+5'
 		drop sort
-	}
 
+	}
+   
 	// Write
 	if inlist("`ext'","tex","csv") outsheet `using' , `c' `replace' noq non
 		else export excel `using' , `replace'
