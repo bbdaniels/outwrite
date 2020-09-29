@@ -19,6 +19,7 @@ syntax anything using/ ///
 	[Stats(passthru)] [Tstat] [Pvalue]  ///
 	[Replace] [Modify] [sheet(passthru)] ///
 	[Drop(string asis)] ///
+  [noLABel] /// Disable variable labels
   [*] /// enable other options in TeX
 
 qui {
@@ -96,7 +97,8 @@ if `: word count `anything'' >= 2 {
 					if regexm("`1'","^[0-9+]") local theLevel = regexs(0)
 					local theVar = substr("`1'",strpos("`1'",".")+1,.)
 					local theLab : var lab `theVar'
-					local theExp = "`theExp'`theLab'=`:label (`theVar') `theLevel''"
+					if "`label'" == "nolabel" local theExp = "`theExp'`:label (`theVar') `theLevel''"
+            else local theExp = "`theExp'`theLab'=`:label (`theVar') `theLevel''"
 				}
 			mac shift
 			}
@@ -336,10 +338,11 @@ syntax ///
 	// Update for tex
 	if "`ext'" == "tex" {
 		if "`bold'" != "nobold" replace a = "{\bf " + a + "}"
-		if "`bold'" != "nobold" foreach var of varlist `anything'* {
-			replace `var' = "\multicolumn{1}{c}" + "{\bf " + `var' + "}" in 1
+		foreach var of varlist `anything'* {
+			if "`bold'" != "nobold" replace `var' = "{\bf " + `var' + "}" in 1
+      replace `var' = "\multicolumn{1}{p{0.13\linewidth}}{\centering{" + `var' + "}}" in 1
 		}
-    
+        
     drop if TODROP == 1
 
 		egen FINAL = concat(a `vars') , punct(" & ")
