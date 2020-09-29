@@ -242,6 +242,7 @@ syntax ///
   [colnames(string asis)] /// column titles
   [rownames(string asis)] /// row titles
   [format(string asis)] /// number of decimal places
+  [ADDlines(string asis)] /// additional model info
   [replace] [c] [ext(string asis)] ///
   [nobold] /// Disable bolding
   [nonumbering] /// Disable numbering
@@ -379,7 +380,7 @@ syntax ///
     }
     
     // Stars gone
-    if "`stars'" != "nostars" {
+    if "`stars'" == "nostars" {
       foreach var of varlist `anything'* {
         replace `var' = subinstr(`var',"*","",.)
         replace `var' = subinstr(`var',"\phantom{}","",.)
@@ -413,9 +414,19 @@ syntax ///
    		replace FINAL = "\hline" if false == 1
         drop false
 
-		replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lrrrrrrrrrrrrrrr}" in 1
+		if "`stars'" == "nostars" replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lccccccccccccc}" in 1
+      else replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lrrrrrrrrrrrrrrr}" in 1
 		replace FINAL = "\toprule" in 2
 		replace FINAL = "\hline" in 5    
+    
+    parenParse `addlines'
+    forvalues i = 1/`r(nStrings)' {
+      set obs `=`c(N)'+1'
+		  replace FINAL = `"`r(string`i')'"' in `c(N)'
+      replace FINAL = trim(itrim(FINAL)) in `c(N)'
+      replace FINAL = subinstr(FINAL,`"" ""',`"}} & \multicolumn{1}{p{0.13\linewidth}}{\centering{"',.) in `c(N)'
+      replace FINAL = "{" + subinstr(FINAL,`"""',`""',.) + "}} \\" in `c(N)'
+    }
     
     set obs `=`c(N)'+2'
 		replace FINAL = "\hline" in `=`c(N)'-1'
@@ -428,6 +439,51 @@ syntax ///
 		else export excel `using' , `replace'
 
 end // end mat2csv
+
+// Program to parse on parenthesis
+cap prog drop parenParse
+program def parenParse , rclass
+
+  syntax anything
+
+  local N = length(`"`anything'"')
+
+  local x = 0
+  local parCount = 0
+
+  // Run through string
+  forv i = 1/`N' {
+    local char = substr(`"`anything'"',`i',1) // Get next character
+
+    // Increment unit and counter when encountering open parenthesis
+    if `"`char'"' == "(" {
+      if `parCount' == 0 {
+        local ++x // Start next item when encountering new block
+      }
+      else {
+        local string`x' = `"`string`x''`char'"'
+      }
+      local ++parCount
+    }
+    // Otherwise de-increment counter if close parenthesis
+    else if `"`char'"' == ")" {
+      local --parCount
+      if `parCount' != 0 local string`x' = `"`string`x''`char'"'
+    }
+    // Otherwise add character to string block
+    else {
+      local string`x' = `"`string`x''`char'"'
+    }
+  }
+
+  // Return strings to calling program
+  return scalar nStrings = `x'
+  forv i = 1/`x' {
+    return local string`i' = `"`string`i''"'
+  }
+
+end
+// End
 
 * Have a lovely day!
 
