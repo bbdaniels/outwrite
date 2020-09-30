@@ -365,12 +365,14 @@ syntax ///
   		  replace `var' = "\multicolumn{1}{p{0.13\linewidth}}{\centering{(`col')}}" in 1
   		}
     }
-    
+
     // SE parentheses
     if "`paren'" != "noparen" {
       foreach var of varlist `anything'* {
-        replace `var' = "(" + subinstr(`var',"\phantom{***}",")\phantom{***}",.) if a == "" in 3/l
-        replace `var' = subinstr(`var',"*","\phantom{)}*",1) if a != "" in 3/l
+        replace `var' = "(" + subinstr(`var',"\phantom{***}",")\phantom{***}",.) ///
+          if (a == "" & strpos(`var',".")) in 3/l
+        replace `var' = subinstr(`var',"*","\phantom{)}*",1) ///
+          if (a != "" & strpos(`var',".")) in 3/-`nStat'
       }
     }
     
