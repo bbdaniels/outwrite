@@ -57,7 +57,7 @@ if `: word count `anything'' >= 2 {
 		fvrevar `drop' , tsonly
 		local drop = subinstr("`r(varlist)'"," ","|",.)
 	}
-
+  
 	// Set final row names
 	local conscounter = 0
 	if !`RN_FLAG' local rownames ""
@@ -67,8 +67,16 @@ if `: word count `anything'' >= 2 {
 	cap mat drop results_new_STARS
 	foreach name in `rownames_old' {
 		// Cruft
-		if strpos("`name'","_easytofind")==1 | strpos("`name'","o.") | /* regexm("`name'","b.") | */ regexm("`=subinstr("`name'","_easytofind0","",.)'","^(`drop')$") {
+		if strpos("`name'","_easytofind") == 1 ///
+     | strpos("`name'","o.") ///
+     | regexm("`=subinstr("`name'","_easytofind0","",.)'","^(`drop')$") {
+     * Skip the line
 		}
+    // Advance if no constant
+    else if regexm("`stats'",subinstr("`name'","_easytofind0","",.)) == 1 ///
+      & (`conscounter' == 0) {
+      local ++conscounter
+    }
 		// Constant
 		else if regexm("`name'","_cons_easytofind0")  & (`conscounter' == 0) {
 			if !`RN_FLAG' local rownames `"`rownames' "Constant" """'
