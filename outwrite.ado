@@ -18,6 +18,7 @@ syntax anything using/ ///
 	[COLnames(string asis)] ///
 	[Stats(passthru)] [Tstat] [Pvalue]  ///
 	[Replace] [Modify] [sheet(passthru)] ///
+  [keep(passthru)] ///
 	[Drop(string asis)] ///
   [noLABel] /// Disable variable labels
   [*] /// enable other options in TeX
@@ -32,7 +33,7 @@ if `: word count `anything'' >= 2 {
 
 	cap mat drop results 
   cap mat drop results_STARS
-	regprep `anything' , below `stats' `tstat' `pvalue'
+	regprep `anything' , below `stats' `tstat' `pvalue' `keep'
 
 	mat results = r(results)
 	mat results_STARS = r(results_STARS)
