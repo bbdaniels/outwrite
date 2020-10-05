@@ -251,10 +251,12 @@ syntax ///
   [rownames(string asis)] /// row titles
   [format(string asis)] /// number of decimal places
   [ADDlines(string asis)] /// additional model info
+  [Hlines(string asis)] /// additional dividers
   [replace] [c] [ext(string asis)] ///
   [nobold] /// Disable bolding
   [nonumbering] /// Disable numbering
   [noparen] /// Disable SE parentheses
+  [PARentheses(string asis)] ///
   [nostars] /// Disable SE parentheses
   [stats(string asis)] /// Get stats
   [STATFORMat(string asis)] /// Get stats formats
@@ -265,6 +267,8 @@ syntax ///
 		clear
 		qui svmat `anything'
 		qui tostring * , force replace format(`format')
+    
+    unab vars : *
 
 	// Remove blanks
 	qui foreach var of varlist * {
@@ -293,9 +297,6 @@ syntax ///
 			qui count
 			local nrows = `r(N)'
 			local j = 0
-      
-      unab vars : *
-      local vars = subinstr("`vars'","TODROP"," ",.)
 
 			foreach var of varlist `vars' {
 				local ++j
@@ -375,14 +376,29 @@ syntax ///
     }
 
     // SE parentheses
-    if "`paren'" != "noparen" {
+    if "`paren'" != "noparen" & "`parentheses'" == "" {
       foreach var of varlist `anything'* {
         replace `var' = "(" + subinstr(`var',"\phantom{***}",")\phantom{***}",.) ///
           if (a == "" & strpos(`var',".")) in 3/l
-        replace `var' = subinstr(`var',"*","\phantom{)}*",1) ///
+        if `nStat' > 0 ///
+          replace `var' = subinstr(`var',"*","\phantom{)}*",1) ///
           if (a != "" & strpos(`var',".")) in 3/-`nStat'
       }
     }
+    
+    // Additional parentheses
+    if "`parentheses'" != "" {
+      local parentheses = subinstr(trim(itrim("`parentheses'"))," ",",",.)
+      gen sort = _n - 2 
+      foreach var of varlist `anything'* {
+        if "`stars'" == "nostars" ///
+          replace `var' = "(" + `var' + ")" if inlist(sort,`parentheses')
+        else ///
+          replace `var' = "(" + subinstr(`var',"\phantom{***}",")\phantom{***}",.) ///
+            if inlist(sort,`parentheses')
+      }      
+      drop sort
+    } 
     
     // Catch minus signs
     foreach var of varlist `anything'* {
@@ -406,11 +422,14 @@ syntax ///
 		gen sort = _n
     
     // Find first statistic
-    local firstStat : word 1 of `stats'
-      expand 2 if ///
-        (strpos(FINAL,"`firstStat' &") == 1) ///
-      | (strpos(FINAL,"`firstStat'} &") > 0) , gen(false)
+    if "`stats'" != "" {
+      local firstStat : word 1 of `stats'
+        expand 2 if ///
+          (strpos(FINAL,"`firstStat' &") == 1) ///
+        | (strpos(FINAL,"`firstStat'} &") > 0) , gen(false)
+    }
 
+    // Setup for header
 		qui count
 			set obs `=`c(N)'+1'
 			   replace sort = 0 if sort == .
@@ -420,16 +439,22 @@ syntax ///
 			   replace sort = 1 if sort == .
       set obs `=`c(N)'+1'
 			   replace sort = 0.25 if sort == .
-			gsort + sort - false
-			
+			if "`stats'" != "" gsort + sort - false
+        else gsort + sort
+  
+    // Separator for statistics
+    if "`stats'" != "" {
    		replace FINAL = "\hline" if false == 1
-        drop false
-
+      drop false
+    }
+    
+    // Header
 		if "`stars'" == "nostars" replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lccccccccccccc}" in 1
       else replace FINAL = "\begin{tabular}{@{\extracolsep{5pt}}lrrrrrrrrrrrrrrr}" in 1
 		replace FINAL = "\toprule" in 2
 		replace FINAL = "\hline" in 5    
     
+    // Additional lines
     if `"`addlines'"' != "" {
       parenParse `addlines'
       forvalues i = 1/`r(nStrings)' {
@@ -441,6 +466,17 @@ syntax ///
       }
     }
     
+    // Additional dividers
+    if "`hlines'" != "" {
+      local hlines = subinstr(trim(itrim("`hlines'"))," ",",",.)
+      replace sort = _n - 5
+      expand 2 if inlist(sort,`hlines') , gen(false)
+      sort sort false
+      replace FINAL = "\hline" if false == 1
+      drop false
+    }  
+    
+    // Footer
     set obs `=`c(N)'+2'
 		replace FINAL = "\hline" in `=`c(N)'-1'
 		replace FINAL = "\end{tabular}" in `c(N)'
